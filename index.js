@@ -17,6 +17,12 @@ function getViewWidth() {
     return 80;
 }
 
+var viewWidth = getViewWidth();
+var dotLine = viewWidth - 2 - 2;
+
+var good = '.';
+var bad = '!';
+
 var DiffFormatter = require('unfunk-diff').DiffFormatter;
 var formatter = new DiffFormatter(style, getViewWidth());
 
@@ -50,6 +56,7 @@ function Test(name) {
     this.name = name;
     this.asserts = [];
     this.ok = true;
+    
     this.passed = 0;
     this.failed = 0;
     this.skipped = 0;
@@ -118,24 +125,24 @@ var yam;
 
 tap.on('version', function (version) {
     writeln(style.accent('TAP version ' + version));
+    writeln();
 });
 
 tap.on('comment', function (comment) {
     // writeln();
     if (/^tests\s+[1-9]/gi.test(comment)) {
-        writeln('-> test-count ' + comment);
+        // writeln(style.accent(comment));
     }
     else if (/^pass\s+[1-9]/gi.test(comment)) {
-        writeln('-> pass ' + comment);
+        // writeln(style.success(comment));
     }
     else if (/^fail\s+[1-9]/gi.test(comment)) {
-        writeln('-> fail ' + comment);
+        // writeln(style.error(comment));
     }
     else if (/^ok$/gi.test(comment)) {
-        writeln('-> ok ' + comment);
+        // writeln(style.plain(comment));
     }
     else {
-        // writeln('-> test ' + comment);
         current = new Test(comment);
         tests.push(current);
         currentAssert = null;
@@ -147,6 +154,7 @@ tap.on('assert', function (assert) {
     current.ok = (current.ok && assert.ok);
     current.asserts.push(assert);
     current.total++;
+
     if (assert.ok) {
         current.passed++;
     }
@@ -156,8 +164,7 @@ tap.on('assert', function (assert) {
 });
 
 tap.on('plan', function (plan) {
-    out.push('-> plan ');
-    writeln(util.inspect(plan));
+    // writeln('plan' + util.inspect(plan));
 });
 
 tap.on('extra', function (extra) {
@@ -200,44 +207,65 @@ tap.on('extra', function (extra) {
 
 tap.on('results', function (res) {
     result = res;
-    writeln();
-    writeln('-> result ');
-    writeln();
     // writeln(util.inspect(result));
     // writeln(util.inspect(tests, false, 8));
 
-    var passedTests = 0;
-    var failedTests = 0;
+    var testsPassed = 0;
+    var testsFailed = 0;
+    
+    var assertTotal = 0;
+    var assertPassed = 0;
+    var assertsFailed = 0;
 
     tests.forEach(function (test) {
         if (test.ok) {
-            passedTests++;
+            testsPassed++;
         }
         else {
-            failedTests++;
+            testsFailed++;
         }
+        assertTotal += test.total;
+        assertPassed += test.passed;
+        assertsFailed += test.failed;
     });
 
     if (tests.length === 0) {
-        writeln(style.signal('zero tests'));
+        writeln(style.signal('zero tests?'));
     }
     else {
-        writeln(style.accent('tested ' + tests.length));
+        writeln(style.accent('tests ' + tests.length));
 
-        if (passedTests === 0) {
+        if (testsPassed === 0) {
             writeln(style.warning('  passed 0'));
         }
         else {
-            writeln(style.success('  passed ' + passedTests));
+            writeln(style.success('  passed ' + testsPassed));
         }
-        if (failedTests === 0) {
+        if (testsFailed === 0) {
             writeln(style.success('  failed 0'));
         }
         else {
-            writeln(style.error('  failed ' + failedTests));
+            writeln(style.error('  failed ' + testsFailed));
         }
+        
         writeln();
+        
+        writeln(style.accent('assertions ' + assertTotal));
+
+        if (assertPassed === 0) {
+            writeln(style.warning('  passed 0'));
+        }
+        else {
+            writeln(style.success('  passed ' + assertPassed));
+        }
+        if (assertsFailed === 0) {
+            writeln(style.success('  failed 0'));
+        }
+        else {
+            writeln(style.error('  failed ' + assertsFailed));
+        }
     }
+    writeln();
 
     tests.forEach(function (test) {
         if (test.ok) {
@@ -272,11 +300,11 @@ tap.on('results', function (res) {
 
 process.on('exit', function () {
     if (errors.length || !result.ok) {
-        writeln(style.signal('see you soon!'));
+        writeln(style.signal('see you soon'));
         process.exit(1);
     }
     else {
-        writeln(style.success('bye!'));
+        writeln(style.success('bye'));
         writeln();
     }
 });
