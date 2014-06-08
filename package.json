@@ -44,9 +44,11 @@
   },
   "dependencies": {
     "duplexer": "^0.1.1",
+    "jsesc": "^0.4.3",
     "ministyle": "^0.1.4",
     "tap-parser": "^0.5.0",
     "through2": "^0.5.1",
+    "type-detect": "^0.1.2",
     "unfunk-diff": "0.0.2",
     "yamlish": "0.0.5"
   },

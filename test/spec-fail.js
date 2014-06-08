@@ -16,6 +16,16 @@ function run(test) {
         t.equal('foobar', 'baz', 'assert foobar');
     });
 
+    test('mix fail', function (t) {
+        t.plan(1);
+        t.equal(123, 'baz', 'assert 123');
+    });
+
+    test('mix fail', function (t) {
+        t.plan(1);
+        t.equal(123, 'bu\'z\nz', 'assert 123');
+    });
+
     test('string sub pass', function (t) {
         t.plan(1);
         t.equal('hoge', 'hoge');
@@ -72,11 +82,13 @@ function run(test) {
         t.deepEqual({
             aa: 'aabb',
             bb: 22,
-            cc: [0, 1, 2]
+            cc: [0, 1, 2],
+            dd: 12
         }, {
             aa: 'abcb',
             bb: 22,
-            cc: [0, 1, 3]
+            cc: [0, 1, 3],
+            dd: 'dd'
         });
     });
 }

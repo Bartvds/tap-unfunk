@@ -8,7 +8,19 @@ var yamlish = require('yamlish');
 var tty = require('tty');
 var isatty = (tty.isatty('1') && tty.isatty('2'));
 
+var typeDetect = require('type-detect');
+var jsesc = require('jsesc');
 var style = require('ministyle').ansi();
+
+var escapeString = require('./lib/escapeString');
+
+var out = through();
+var tap = parser();
+var dup = duplexer(tap, out);
+
+process.stdin
+    .pipe(dup)
+    .pipe(process.stdout);
 
 function getViewWidth(max) {
     var width = 80;
@@ -24,6 +36,8 @@ function getViewWidth(max) {
 var viewWidth = getViewWidth() - 2;
 var dotLimit = getViewWidth(80) - 2 - 2;
 var dotCount = 0;
+
+var valueStrLim = 50;
 
 var goodDot = style.plain('.');
 var badDot = style.error('!');
@@ -46,21 +60,13 @@ function addDot(dot) {
 var DiffFormatter = require('unfunk-diff').DiffFormatter;
 var formatter = new DiffFormatter(style, viewWidth);
 
-var out = through();
-var tap = parser();
-var dup = duplexer(tap, out);
-
-process.stdin
-    .pipe(dup)
-    .pipe(process.stdout);
-
 function write(line) {
-    out.push(line);
+    out.push(String(line));
 }
 
 function writeln(line) {
     if (arguments.length > 0) {
-        out.push(line);
+        out.push(String(line));
     }
     out.push('\n');
 }
@@ -90,6 +96,61 @@ function fmtTime(time) {
     return Math.round(time) + 'ms';
 }
 
+var printTypes = [
+    'date',
+    'regexp',
+    'boolean',
+    'number',
+    'undefined',
+    'null'
+];
+
+function fmtString(value, limitish) {
+    var str = String(value);
+    var trimmed = false;
+    var t = typeDetect(value);
+
+    if (printTypes.indexOf(t) > -1) {
+        return str;
+    }
+    if (t === 'function') {
+        return t;
+    }
+    if (arguments.length > 2) {
+        // limit is not 100% accurate as it doesn't take escaping into account
+        if (str.length > limitish) {
+            str = str.substr(0, limitish);
+            trimmed = true;
+        }
+    }
+    return escapeString(str) + (trimmed ? '...' : '');
+}
+
+function fmtDiff(actual, expected, operator, indent) {
+    // simplify
+    var aDet = typeDetect(actual);
+    var eDet = typeDetect(expected);
+    if (aDet === 'date' || aDet === 'regexp') {
+        actual = String(actual);
+    }
+    if (eDet === 'date' || eDet === 'regexp') {
+        actual = String(actual);
+    }
+
+    // simple type
+    var acType = typeof actual;
+    var exType = typeof expected;
+
+    var diff = '';
+    if ((acType === 'string' && exType === 'string') || (acType && exType && acType === 'object' && exType === 'object')) {
+        diff = formatter.getStyledDiff(actual, expected, indent);
+    }
+    else {
+        diff = indent + '  want ' + fmtString(actual, valueStrLim) + '\n' + indent + '  have ' + fmtString(expected, valueStrLim);
+    }
+    return diff;
+}
+
 var propMap = Object.create(null);
 propMap['wanted'] = 'expected';
 propMap['found'] = 'actual';
@@ -102,6 +163,7 @@ literalMap['null'] = null;
 literalMap['NaN'] = NaN;
 
 var evalExp = [
+    /^'.*?'$/,
     /^\[.*?\]$/,
     /^\{.*?\}$/,
     /^\/.*?\/[a-z]*$/
@@ -114,6 +176,7 @@ function evil(str) {
 }
 
 function parseValue(str) {
+    writeln(str);
     var value = parseFloat(str);
     if (!isNaN(value)) {
         return value;
@@ -321,7 +384,7 @@ function printFailedTests(tests) {
             }
             */
 
-            var diff = formatter.getStyledDiff(assert.actual, assert.expected, '      ');
+            var diff = fmtDiff(assert.actual, assert.expected, assert.operator, '      ');
             if (diff) {
                 writeln(diff, '      ');
             }
