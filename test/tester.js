@@ -3,13 +3,19 @@ var path = require('path');
 var child_process = require('child_process');
 
 var BufferList = require('bl');
+
 var ministyle = require('ministyle');
+var style = ministyle.ansi();
+
+var getViewWidth = require('../lib/getViewWidth');
+
+var DiffFormatter = require('unfunk-diff').DiffFormatter;
+var formatter = new DiffFormatter(style, getViewWidth(80));
 
 function normalise(str) {
     return str.replace(/^  timing \d+ms$/gm, '  timing <X>ms');
 }
 
-var style = ministyle.ansi();
 
 var reportPath = path.relative(process.cwd(), path.resolve(__dirname, '..', 'bin', 'unfunk.js'));
 
@@ -94,10 +100,10 @@ function step(callback) {
                 code: code,
                 sucess: success
             };
-            /*if (!success) {
+            if (!success) {
                 res.actual = actual;
                 res.expected = expected;
-            }*/
+            }
             result.push(res);
 
             fs.writeFileSync(expectedPath.replace(/-\w+\.txt$/, '-dump.txt'), actual);
@@ -130,6 +136,7 @@ step(function (err, result) {
             console.log(res.err);
             return;
         }
+        console.log(formatter.getStyledDiff(res.actual, res.expected, '  '));
     });
 
     console.log('');

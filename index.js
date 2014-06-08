@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('util');
 
 var through = require('through2');
@@ -5,14 +7,13 @@ var duplexer = require('duplexer');
 
 var parser = require('tap-parser');
 var yamlish = require('yamlish');
-var tty = require('tty');
-var isatty = (tty.isatty('1') && tty.isatty('2'));
 
 var typeDetect = require('type-detect');
 var jsesc = require('jsesc');
 var style = require('ministyle').ansi();
 
 var escapeString = require('./lib/escapeString');
+var getViewWidth = require('./lib/getViewWidth');
 
 var out = through();
 var tap = parser();
@@ -22,16 +23,6 @@ process.stdin
     .pipe(dup)
     .pipe(process.stdout);
 
-function getViewWidth(max) {
-    var width = 80;
-    if (isatty) {
-        width = (process.stdout.getWindowSize ? process.stdout.getWindowSize(1)[0] : tty.getWindowSize()[1]);
-    }
-    if (arguments.length > 0) {
-        width = Math.min(max, width);
-    }
-    return 80;
-}
 
 var viewWidth = getViewWidth() - 2;
 var dotLimit = getViewWidth(80) - 2 - 2;
