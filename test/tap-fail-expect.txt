@@ -1,0 +1,84 @@
+[36mTAP version 13[0m
+
+  [31m![0m..[31m![0m[31m![0m[31m![0m[31m![0m..[31m![0m.[31m![0m[31m![0m.[31m![0m.[31m![0m[31m![0m[31m![0m
+
+[35mfailed 11 tests[0m
+
+  [36m(anonymous)[0m
+    [33m1) assert foo[0m
+        want: 1
+        have: 2
+  [36mstring pass[0m
+    [33m4) test count != plan[0m
+        want: 2
+        have: 1
+  [36mstring fail[0m
+    [33m5) assert foobar[0m
+      [31m- [0m   ba z
+        [32m+++[0m[33m||[0m[32m+[0m[31m-[0m
+      [32m+ [0mfoobar 
+  [36mmix fail[0m
+    [33m6) assert 123[0m
+        want: 123
+        have: baz
+  [36mmix fail[0m
+    [33m7) assert 123[0m
+        want: 123
+        have: 'bu'z\nz'
+  [36msub pass[0m
+    [33m10) test count != plan[0m
+        want: 2
+        have: 1
+  [36msub fail[0m
+    [33m12) should be equal[0m
+      [31m- [0m  nuge
+        [32m++[0m[31m--[0m[33m||[0m
+      [32m+ [0mho  ge
+    [33m13) test count != plan[0m
+        want: 2
+        have: 1
+  [36mboolean fail[0m
+    [33m15) should be equal[0m
+        want: true
+        have: false
+  [36marray fail[0m
+    [33m17) should be equivalent[0m
+      . 0: 0
+      [31m- 1[0m: 3
+      [32m+ 1[0m: 1
+      . 2: 2      
+  [36mobject pass[0m
+    [33m18) should be equivalent[0m
+      [31m- aa[0m: aa  
+      |   : [33m||[0m[32m++[0m
+      [32m+ aa[0m: aabb
+      . bb: 22
+      . cc: 
+        . 0: 0
+        . 1: 1
+        . 2: 2      
+  [36mobject fail[0m
+    [33m19) should be equivalent[0m
+      [31m- aa[0m: a bcb
+      |   : [33m|[0m[32m+[0m[33m|[0m[31m-[0m[33m|[0m
+      [32m+ aa[0m: aab b
+      . bb: 22
+      [33m? cc[0m: 
+        . 0: 0
+        . 1: 1
+        [31m- 2[0m: 3
+        [32m+ 2[0m: 2      
+      [31m- dd[0m: dd
+      [32m+ dd[0m: 12      
+
+[36masserted 19[0m
+[33m  passed 7[0m
+[31m  failed 12[0m
+  timing 1ms
+
+[36mexecuted 15 tests[0m
+[33m  passed 4[0m
+[31m  failed 11[0m
+  timing 13ms
+
+[35mfail[0m

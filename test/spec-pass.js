@@ -1,10 +1,12 @@
 function run(test) {
-    for (var i = 0; i < 300; i++) {
+    for (var i = 0; i < 50; i++) {
         test('test' + i, function (t) {
-            t.plan(1);
+            t.plan(5);
             setTimeout(function () {
-                t.equal(1, 1, 'assert');
-            }, 5);
+                for (var i = 0; i < 5; i++) {
+                    t.equal(1, 1, 'assert');
+                }
+            }, 10);
         });
     }
 }

@@ -40,7 +40,7 @@
     "tap_fail": "node ./test/tap-fail.js | node .",
     "tape_pass": "node ./test/tape-pass.js | node .",
     "tape_fail": "node ./test/tape-fail.js | node .",
-    "test": "npm run tap_pass && npm run tap_fail && npm run tape_fail"
+    "test": "node ./test/tester.js"
   },
   "dependencies": {
     "duplexer": "^0.1.1",
@@ -53,6 +53,7 @@
     "yamlish": "0.0.5"
   },
   "devDependencies": {
+    "bl": "^0.8.0",
     "tap": "^0.4.9",
     "tape": "^2.13.2"
   }

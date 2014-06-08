@@ -146,7 +146,7 @@ function fmtDiff(actual, expected, operator, indent) {
         diff = formatter.getStyledDiff(actual, expected, indent);
     }
     else {
-        diff = indent + '  want ' + fmtString(actual, valueStrLim) + '\n' + indent + '  have ' + fmtString(expected, valueStrLim);
+        diff = indent + '  want: ' + fmtString(actual, valueStrLim) + '\n' + indent + '  have: ' + fmtString(expected, valueStrLim);
     }
     return diff;
 }

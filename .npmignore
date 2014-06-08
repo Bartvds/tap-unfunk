@@ -3,14 +3,15 @@
 /dist
 /test
 /demo
+/debug
 
 /*.tgz
+/*.log
 .jshintrc
 .editorconfig
 .travis.yml
 ,gitignore
 .npmignore
-/npm-log*
 
 bower.json
 Gruntfile.js

@@ -13,3 +13,5 @@
 
 /demo/js/lorez.*
 /demo/README.md
+
+/test/*-dump.txt
