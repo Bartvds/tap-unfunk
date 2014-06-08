@@ -257,7 +257,12 @@ function printTestTotal(count) {
         writeln(style.warning('  passed 0'));
     }
     else {
-        writeln(style.success('  passed ' + count.testsPassed));
+        if (count.assertsFailed === 0) {
+            writeln(style.success('  passed ' + count.testsPassed));
+        }
+        else {
+            writeln(style.warning('  passed ' + count.testsPassed));
+        }
     }
     if (count.testsFailed === 0) {
         writeln(style.success('  failed 0'));
@@ -265,6 +270,8 @@ function printTestTotal(count) {
     else {
         writeln(style.error('  failed ' + count.testsFailed));
     }
+
+    writeln('  timing ' + fmtTime(count.duration));
 }
 
 function printAssertTotal(count) {
@@ -274,7 +281,12 @@ function printAssertTotal(count) {
         writeln(style.warning('  passed 0'));
     }
     else {
-        writeln(style.success('  passed ' + count.assertPassed));
+        if (count.assertsFailed === 0) {
+            writeln(style.success('  passed ' + count.assertPassed));
+        }
+        else {
+            writeln(style.warning('  passed ' + count.assertPassed));
+        }
     }
     if (count.assertsFailed === 0) {
         writeln(style.success('  failed 0'));
@@ -282,6 +294,8 @@ function printAssertTotal(count) {
     else {
         writeln(style.error('  failed ' + count.assertsFailed));
     }
+
+    writeln('  timing ' + fmtTime(count.avgDuration));
 }
 
 function printFailedTests(tests) {
@@ -367,23 +381,24 @@ tap.on('results', function (res) {
             printFailedTests(tests);
             writeln();
         }
+
+        printAssertTotal(count);
+
+        writeln();
         printTestTotal(count);
 
         writeln();
-        printAssertTotal(count);
-        writeln();
-
-        writeln('total duration ' + fmtTime(count.duration) + ' (average ' + fmtTime(count.avgDuration) + ')');
-        writeln();
+        // writeln('duration ' + fmtTime(count.duration) + ', average ' + fmtTime(count.avgDuration));
+        // writeln();
     }
 });
 
 process.on('exit', function () {
     if (errors.length || !result.ok) {
-        writeln(style.signal('see you soon '));
+        writeln(style.signal('fail'));
         process.exit(1);
     }
     else {
-        writeln(style.accent('bye'));
+        writeln(style.accent('pass'));
     }
 });
