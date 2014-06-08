@@ -94,6 +94,41 @@ var propMap = Object.create(null);
 propMap['wanted'] = 'expected';
 propMap['found'] = 'actual';
 
+var literalMap = Object.create(null);
+literalMap['true'] = true;
+literalMap['false'] = false;
+literalMap['undefined'] = undefined;
+literalMap['null'] = null;
+literalMap['NaN'] = NaN;
+
+var evalExp = [
+    /^\[.*?\]$/,
+    /^\{.*?\}$/,
+    /^\/.*?\/[a-z]*$/
+];
+
+function evil(str) {
+    var tmp;
+    eval('tmp = ' + str + ';');
+    return tmp;
+}
+
+function parseValue(str) {
+    var value = parseFloat(str);
+    if (!isNaN(value)) {
+        return value;
+    }
+    if (str in literalMap) {
+        return literalMap[str];
+    }
+    for (var i = 0; i < evalExp.length; i++) {
+        if (evalExp[i].test(str)) {
+            return evil(str);
+        }
+    }
+    return str;
+}
+
 var result;
 var errors = [];
 var tests = [];
@@ -190,12 +225,18 @@ tap.on('extra', function (extra) {
             // pad yamlish with newlines
             var obj = yamlish.decode('\n' + yam.join('\n') + '\n');
             if (obj && typeof obj === 'object') {
-                Object.keys(obj).forEach(function (prop) {
+                Object.keys(obj).forEach(function (key) {
+                    var prop = key;
+                    // remap fields (ex: tap)
                     if (prop in propMap) {
-                        currentAssert[propMap[prop]] = obj[prop];
+                        prop = propMap[prop];
+                    }
+                    // parse tape objects
+                    if (key === 'actual' || key === 'expected') {
+                        currentAssert[prop] = parseValue(obj[key]);
                     }
                     else {
-                        currentAssert[prop] = obj[prop];
+                        currentAssert[prop] = obj[key];
                     }
                 });
             }
@@ -258,13 +299,13 @@ function printFailedTests(tests) {
 
             writeln('    ' + style.warning(assert.number + ') ' + assert.name));
 
-            // position info in tap is broken (points to internals?)
+            // position info passed by tap is bad (points to internals?)
             /*
-             var pos = fmtPosition(assert);
-             if (pos) {
-             writeln('      ' + style.muted('@' + pos));
-             }
-             */
+            var pos = fmtPosition(assert);
+            if (pos) {
+                writeln('      ' + style.muted('@' + pos));
+            }
+            */
 
             var diff = formatter.getStyledDiff(assert.actual, assert.expected, '      ');
             if (diff) {
