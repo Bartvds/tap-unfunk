@@ -32,8 +32,8 @@
   },
   "main": "./index.js",
   "bin": {
-    "tunfunk": "bin/tufunk.js",
-    "tap-unfunk": "bin/tap-unfunk.js"
+    "tunfunk": "bin/unfunk.js",
+    "tap-unfunk": "bin/unfunk.js"
   },
   "scripts": {
     "tap_pass": "node ./test/tap-pass.js | node .",
