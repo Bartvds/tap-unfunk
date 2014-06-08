@@ -176,7 +176,6 @@ function evil(str) {
 }
 
 function parseValue(str) {
-    writeln(str);
     var value = parseFloat(str);
     if (!isNaN(value)) {
         return value;

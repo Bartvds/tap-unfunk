@@ -1,30 +1,6 @@
 [36mTAP version 13[0m
 
-  [31m![0m2
-1
-..[31m![0m1
-2
-[31m![0m'baz'
-'foobar'
-[31m![0m'baz'
-123
-[31m![0m'bu\'z\nz'
-123
-..[31m![0m1
-2
-.[31m![0m'nuge'
-'hoge'
-[31m![0m1
-2
-.[31m![0mfalse
-true
-.[31m![0m[ 0, 3, 2 ]
-[ 0, 1, 2 ]
-[31m![0m{ aa: 'aa', bb: 22, cc: [ 0, 1, 2 ] }
-{ aa: 'aabb', bb: 22, cc: [ 0, 1, 2 ] }
-[31m![0m{ aa: 'abcb', bb: 22, cc: [ 0, 1, 3 ], dd: 'dd' }
-{ aa: 'aabb', bb: 22, cc: [ 0, 1, 2 ], dd: 12 }
-
+  [31m![0m..[31m![0m[31m![0m[31m![0m[31m![0m..[31m![0m.[31m![0m[31m![0m.[31m![0m.[31m![0m[31m![0m[31m![0m
 
 [35mfailed 11 tests[0m
 
@@ -98,11 +74,11 @@ true
 [36masserted 19[0m
 [33m  passed 7[0m
 [31m  failed 12[0m
-  timing 2ms
+  timing <X>ms
 
 [36mexecuted 15 tests[0m
 [33m  passed 4[0m
 [31m  failed 11[0m
-  timing 37ms
+  timing <X>ms
 
 [35mfail[0m
