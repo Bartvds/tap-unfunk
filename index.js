@@ -10,24 +10,41 @@ var isatty = (tty.isatty('1') && tty.isatty('2'));
 
 var style = require('ministyle').ansi();
 
-function getViewWidth() {
+function getViewWidth(max) {
+    var width = 80;
     if (isatty) {
-        return (process.stdout.getWindowSize ? process.stdout.getWindowSize(1)[0] : tty.getWindowSize()[1]);
+        width = (process.stdout.getWindowSize ? process.stdout.getWindowSize(1)[0] : tty.getWindowSize()[1]);
+    }
+    if (arguments.length > 0) {
+        width = Math.min(max, width);
     }
     return 80;
 }
 
-var viewWidth = getViewWidth();
-var dotLimit = viewWidth - 2 - 2;
+var viewWidth = getViewWidth() - 2;
+var dotLimit = getViewWidth(80) - 2 - 2;
 var dotCount = 0;
 
-var goodDot = style.success('.');
-var badDot = style.error('x');
+var goodDot = style.plain('.');
+var badDot = style.error('!');
 var oddDot = style.warning('?');
 var skipDot = style.muted('-');
 
+function addDot(dot) {
+    if (dotCount === 0) {
+        write('  ');
+    }
+    else if (dotCount >= dotLimit) {
+        writeln();
+        write('  ');
+        dotCount = 0;
+    }
+    write(arguments.length > 0 ? dot : oddDot);
+    dotCount++;
+}
+
 var DiffFormatter = require('unfunk-diff').DiffFormatter;
-var formatter = new DiffFormatter(style, getViewWidth());
+var formatter = new DiffFormatter(style, viewWidth);
 
 var out = through();
 var tap = parser();
@@ -55,39 +72,6 @@ function plural(word, count) {
     return word + 's';
 }
 
-var literalMap = Object.create(null);
-literalMap['true'] = true;
-literalMap['false'] = false;
-literalMap['undefined'] = undefined;
-literalMap['null'] = null;
-literalMap['NaN'] = NaN;
-
-var evalExp = [
-    /^\[.*?\]$/,
-    /^\{.*?\}$/,
-    /^\/.*?\/[a-z]+$/
-];
-
-var propMap = Object.create(null);
-propMap['wanted'] = 'expected';
-propMap['found'] = 'actual';
-
-function parseValue(str) {
-    var value = parseFloat(str);
-    if (!isNaN(value)) {
-        return value;
-    }
-    if (str in literalMap) {
-        return literalMap[str];
-    }
-    for (var i = 0; i < evalExp.length; i++) {
-        if (evalExp[i].test(str)) {
-            return evil(str);
-        }
-    }
-    return str;
-}
-
 function fmtPosition(assert) {
     var str = '';
     if (assert.file) {
@@ -102,23 +86,13 @@ function fmtPosition(assert) {
     return str;
 }
 
-function evil(str) {
-    var tmp;
-    eval('tmp = ' + str + ';');
-    return tmp;
+function fmtTime(time) {
+    return Math.round(time) + 'ms';
 }
 
-function addDot(dot) {
-    if (dotCount === 0) {
-        write('  ');
-    }
-    else if (dotCount >= dotLimit) {
-        writeln();
-        write('  ');
-    }
-    write(arguments.length > 0 ? dot : oddDot);
-    dotCount++;
-}
+var propMap = Object.create(null);
+propMap['wanted'] = 'expected';
+propMap['found'] = 'actual';
 
 var result;
 var errors = [];
@@ -130,13 +104,11 @@ var currentAssert;
 var extraOpen = false;
 var yam;
 
-var startTime = Date.now();
-
 function Test(name) {
+    this.name = name;
     this.startTime = Date.now();
     this.endTime = 0;
     this.duration = 0;
-    this.name = name;
     this.asserts = [];
     this.ok = true;
 
@@ -158,8 +130,6 @@ function closeCurrent() {
 tap.on('version', function (version) {
     writeln(style.accent('TAP version ' + version));
     writeln();
-
-    startTime = Date.now();
 });
 
 tap.on('comment', function (comment) {
@@ -219,7 +189,7 @@ tap.on('extra', function (extra) {
         if (yam.length > 0) {
             // pad yamlish with newlines
             var obj = yamlish.decode('\n' + yam.join('\n') + '\n');
-            if (obj && typeof obj  === 'object') {
+            if (obj && typeof obj === 'object') {
                 Object.keys(obj).forEach(function (prop) {
                     if (prop in propMap) {
                         currentAssert[propMap[prop]] = obj[prop];
@@ -240,7 +210,7 @@ tap.on('extra', function (extra) {
 });
 
 function printTestTotal(count) {
-    writeln(style.accent('tests ' + count.testsTotal));
+    writeln(style.accent('executed ' + count.testsTotal + ' ' + plural('test', count.testsFailed)));
 
     if (count.testsPassed === 0) {
         writeln(style.warning('  passed 0'));
@@ -257,7 +227,7 @@ function printTestTotal(count) {
 }
 
 function printAssertTotal(count) {
-    writeln(style.accent('assertions ' + count.assertTotal));
+    writeln(style.accent('asserted ' + count.assertTotal));
 
     if (count.assertPassed === 0) {
         writeln(style.warning('  passed 0'));
@@ -287,14 +257,14 @@ function printFailedTests(tests) {
             }
 
             writeln('    ' + style.warning(assert.number + ') ' + assert.name));
-            
+
             // position info in tap is broken (points to internals?)
             /*
-            var pos = fmtPosition(assert);
-            if (pos) {
-                writeln('      ' + style.muted('@' + pos));
-            }
-            */
+             var pos = fmtPosition(assert);
+             if (pos) {
+             writeln('      ' + style.muted('@' + pos));
+             }
+             */
 
             var diff = formatter.getStyledDiff(assert.actual, assert.expected, '      ');
             if (diff) {
@@ -322,7 +292,9 @@ tap.on('results', function (res) {
 
         assertTotal: 0,
         assertPassed: 0,
-        assertsFailed: 0
+        assertsFailed: 0,
+        duration: 0,
+        avgDuration: 0
     };
 
     tests.forEach(function (test) {
@@ -335,7 +307,10 @@ tap.on('results', function (res) {
         count.assertTotal += test.total;
         count.assertPassed += test.passed;
         count.assertsFailed += test.failed;
+        count.duration += test.duration;
     });
+
+    count.avgDuration = Math.round(count.duration / count.testsTotal);
 
     if (count.assertTotal === 0) {
         writeln(style.signal('zero tests?'));
@@ -344,13 +319,20 @@ tap.on('results', function (res) {
     else {
         writeln();
         writeln();
+
+        if (count.testsFailed > 0) {
+            writeln(style.signal('failed ' + count.testsFailed + ' ' + plural('test', count.testsFailed)));
+            writeln();
+            printFailedTests(tests);
+            writeln();
+        }
         printTestTotal(count);
 
         writeln();
         printAssertTotal(count);
         writeln();
 
-        printFailedTests(tests);
+        writeln('total duration ' + fmtTime(count.duration) + ' (average ' + fmtTime(count.avgDuration) + ')');
         writeln();
     }
 });
@@ -361,7 +343,6 @@ process.on('exit', function () {
         process.exit(1);
     }
     else {
-        writeln(style.success('bye'));
-        writeln();
+        writeln(style.accent('bye'));
     }
 });

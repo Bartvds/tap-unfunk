@@ -36,9 +36,10 @@
     "tap-unfunk": "bin/tap-unfunk.js"
   },
   "scripts": {
-    "tap": "node ./test/tap.js | node .",
-    "tape": "node ./test/tape.js | node .",
-    "test": "npm run tap && npm run tape"
+    "tap_fail": "node ./test/tap-fail.js | node .",
+    "tap_pass": "node ./test/tap-pass.js | node .",
+    "tape_fail": "node ./test/tape-fail.js | node .",
+    "test": "npm run tap_pass && npm run tap_fail && npm run tape_fail"
   },
   "dependencies": {
     "duplexer": "^0.1.1",

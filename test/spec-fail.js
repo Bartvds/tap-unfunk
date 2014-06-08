@@ -1,6 +1,3 @@
-var test = require('tap').test;
-// var test = require('tape');
-
 function run(test) {
 
     test(function (t) {

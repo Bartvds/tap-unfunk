@@ -2,6 +2,7 @@
 /tmp
 /node_modules
 /*.tgz
+/*.log
 /.grunt
 /tscommand*
 *.psd
