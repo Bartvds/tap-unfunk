@@ -32,7 +32,6 @@
   },
   "main": "./index.js",
   "bin": {
-    "tunfunk": "bin/unfunk.js",
     "tap-unfunk": "bin/unfunk.js"
   },
   "scripts": {
