@@ -28,7 +28,7 @@
     "url": "https://raw.github.com/Bartvds/tap-unfunk/master/LICENSE-MIT"
   },
   "engines": {
-    "node": ">= 0.10.0 < 0.11.0"
+    "node": ">= 0.10.0"
   },
   "main": "./index.js",
   "bin": {
