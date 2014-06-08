@@ -8,10 +8,39 @@ Works with the tap output from both [node-tap](https://github.com/isaacs/node-ta
 
 Diff support via [unfunk-diff](https://github.com/Bartvds/unfunk-diff), so diffing strings and objects are supported,  even in tape!
 
-This is the tap equivalent of [mocha-unfunk-reporter](https://github.com/Bartvds/mocha-unfunk-reporter), except it uses dots instead of a spec.
+This is the tap equivalent of [mocha-unfunk-reporter](https://github.com/Bartvds/mocha-unfunk-reporter) except this reporter uses progress dots instead of a spec tree.
 
 Note: early release, please leave your edge cases in the [issues](https://github.com/Bartvds/tap-unfunk/issues).
 
+## Install
+ 
+```
+npm install tap-unfunk --save-dev
+```
+ 
+## Usage
+
+### package.json
+
+```json
+{
+  "scripts": {
+    "test": "node ./test/tap-test.js | tap-unfunk"
+  }
+}
+```
+
+Then run with `npm test`
+ 
+### Terminal
+
+```
+tap test/index.js | node_modules/.bin/tap-unfunk
+```
+
+```
+tape test/index.js | node_modules/.bin/tap-unfunk
+``` 
 
 ## Todo
 
