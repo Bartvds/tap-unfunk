@@ -13,11 +13,11 @@ This is the tap equivalent of [mocha-unfunk-reporter](https://github.com/Bartvds
 Note: early release, please leave your edge cases in the [issues](https://github.com/Bartvds/tap-unfunk/issues).
 
 ## Install
- 
+
 ```
 npm install tap-unfunk --save-dev
 ```
- 
+
 ## Usage
 
 ### package.json
@@ -31,7 +31,7 @@ npm install tap-unfunk --save-dev
 ```
 
 Then run with `npm test`
- 
+
 ### Terminal
 
 ```
@@ -40,12 +40,22 @@ tap test/index.js | node_modules/.bin/tap-unfunk
 
 ```
 tape test/index.js | node_modules/.bin/tap-unfunk
-``` 
+```
+
+## Example
+
+<pre style="background-color: black; font-family: monospace;">
+saasdsd
+</pre>
 
 ## Todo
 
-- add screenshots (automate)
 - expose option for plain text, css and html output
+
+
+## History
+
+* 0.1.0 - First release
 
 ## License
 

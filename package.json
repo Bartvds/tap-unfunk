@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "tap-unfunk",
   "version": "0.1.0",
   "description": "Unfunky TAP reporter with object/string diff support",
