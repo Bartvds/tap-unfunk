@@ -18,10 +18,13 @@ function getViewWidth() {
 }
 
 var viewWidth = getViewWidth();
-var dotLine = viewWidth - 2 - 2;
+var dotLimit = viewWidth - 2 - 2;
+var dotCount = 0;
 
-var good = '.';
-var bad = '!';
+var goodDot = style.success('.');
+var badDot = style.error('x');
+var oddDot = style.warning('?');
+var skipDot = style.muted('-');
 
 var DiffFormatter = require('unfunk-diff').DiffFormatter;
 var formatter = new DiffFormatter(style, getViewWidth());
@@ -50,17 +53,6 @@ function plural(word, count) {
         return word;
     }
     return word + 's';
-}
-
-function Test(name) {
-    this.name = name;
-    this.asserts = [];
-    this.ok = true;
-    
-    this.passed = 0;
-    this.failed = 0;
-    this.skipped = 0;
-    this.total = 0;
 }
 
 var literalMap = Object.create(null);
@@ -100,9 +92,12 @@ function fmtPosition(assert) {
     var str = '';
     if (assert.file) {
         str = assert.file;
-        if (typeof assert.line !== 'undefined' && typeof assert.column != 'undefined') {
-            str += ' [' + assert.line + ',' + assert.column + ']';
+    }
+    if (typeof assert.column !== 'undefined' && typeof assert.line != 'undefined') {
+        if (assert.file) {
+            str += ' ';
         }
+        str += '[' + assert.column + ',' + assert.line + ']';
     }
     return str;
 }
@@ -111,6 +106,18 @@ function evil(str) {
     var tmp;
     eval('tmp = ' + str + ';');
     return tmp;
+}
+
+function addDot(dot) {
+    if (dotCount === 0) {
+        write('  ');
+    }
+    else if (dotCount >= dotLimit) {
+        writeln();
+        write('  ');
+    }
+    write(arguments.length > 0 ? dot : oddDot);
+    dotCount++;
 }
 
 var result;
@@ -123,12 +130,42 @@ var currentAssert;
 var extraOpen = false;
 var yam;
 
+var startTime = Date.now();
+
+function Test(name) {
+    this.startTime = Date.now();
+    this.endTime = 0;
+    this.duration = 0;
+    this.name = name;
+    this.asserts = [];
+    this.ok = true;
+
+    this.passed = 0;
+    this.failed = 0;
+    this.skipped = 0;
+    this.total = 0;
+}
+
+function closeCurrent() {
+    if (current) {
+        current.endTime = Date.now();
+        current.duration = current.endTime - current.startTime;
+        current = null;
+        currentAssert = null;
+    }
+}
+
 tap.on('version', function (version) {
     writeln(style.accent('TAP version ' + version));
     writeln();
+
+    startTime = Date.now();
 });
 
 tap.on('comment', function (comment) {
+    // all of these end a test (right?)
+    closeCurrent();
+
     // writeln();
     if (/^tests\s+[1-9]/gi.test(comment)) {
         // writeln(style.accent(comment));
@@ -157,9 +194,11 @@ tap.on('assert', function (assert) {
 
     if (assert.ok) {
         current.passed++;
+        addDot(goodDot);
     }
     else {
         current.failed++;
+        addDot(badDot);
     }
 });
 
@@ -178,95 +217,63 @@ tap.on('extra', function (extra) {
     else if (/^  \.\.\.$/.test(extra)) {
         extraOpen = false;
         if (yam.length > 0) {
-            var obj = yamlish.decode(yam.join('\n'));
-            Object.keys(obj).forEach(function (prop) {
-                if (prop in propMap) {
-                    currentAssert[propMap[prop]] = obj[prop];
-                }
-                else {
-                    currentAssert[prop] = obj[prop];
-                }
-            });
-        }
-    }
-    else if (/^    /.test(extra)) {
-        extra = extra.replace(/^    /, '');
-        if (/^\w+:/.test(extra)) {
-            var match = /^(\w+):\s*(.*?)\s*$/.exec(extra);
-            var prop = match[1];
-            if (prop === 'actual' || prop === 'expected') {
-                currentAssert[prop] = parseValue(match[2]);
-                return;
+            // pad yamlish with newlines
+            var obj = yamlish.decode('\n' + yam.join('\n') + '\n');
+            if (obj && typeof obj  === 'object') {
+                Object.keys(obj).forEach(function (prop) {
+                    if (prop in propMap) {
+                        currentAssert[propMap[prop]] = obj[prop];
+                    }
+                    else {
+                        currentAssert[prop] = obj[prop];
+                    }
+                });
             }
         }
+    }
+    else {
+        extra = extra.replace(/^    /, '').replace(/ +$/, '');
         if (extra.length > 0) {
             yam.push(extra);
         }
     }
 });
 
-tap.on('results', function (res) {
-    result = res;
-    // writeln(util.inspect(result));
-    // writeln(util.inspect(tests, false, 8));
+function printTestTotal(count) {
+    writeln(style.accent('tests ' + count.testsTotal));
 
-    var testsPassed = 0;
-    var testsFailed = 0;
-    
-    var assertTotal = 0;
-    var assertPassed = 0;
-    var assertsFailed = 0;
-
-    tests.forEach(function (test) {
-        if (test.ok) {
-            testsPassed++;
-        }
-        else {
-            testsFailed++;
-        }
-        assertTotal += test.total;
-        assertPassed += test.passed;
-        assertsFailed += test.failed;
-    });
-
-    if (tests.length === 0) {
-        writeln(style.signal('zero tests?'));
+    if (count.testsPassed === 0) {
+        writeln(style.warning('  passed 0'));
     }
     else {
-        writeln(style.accent('tests ' + tests.length));
-
-        if (testsPassed === 0) {
-            writeln(style.warning('  passed 0'));
-        }
-        else {
-            writeln(style.success('  passed ' + testsPassed));
-        }
-        if (testsFailed === 0) {
-            writeln(style.success('  failed 0'));
-        }
-        else {
-            writeln(style.error('  failed ' + testsFailed));
-        }
-        
-        writeln();
-        
-        writeln(style.accent('assertions ' + assertTotal));
-
-        if (assertPassed === 0) {
-            writeln(style.warning('  passed 0'));
-        }
-        else {
-            writeln(style.success('  passed ' + assertPassed));
-        }
-        if (assertsFailed === 0) {
-            writeln(style.success('  failed 0'));
-        }
-        else {
-            writeln(style.error('  failed ' + assertsFailed));
-        }
+        writeln(style.success('  passed ' + count.testsPassed));
     }
-    writeln();
+    if (count.testsFailed === 0) {
+        writeln(style.success('  failed 0'));
+    }
+    else {
+        writeln(style.error('  failed ' + count.testsFailed));
+    }
+}
 
+function printAssertTotal(count) {
+    writeln(style.accent('assertions ' + count.assertTotal));
+
+    if (count.assertPassed === 0) {
+        writeln(style.warning('  passed 0'));
+    }
+    else {
+        writeln(style.success('  passed ' + count.assertPassed));
+    }
+    if (count.assertsFailed === 0) {
+        writeln(style.success('  failed 0'));
+    }
+    else {
+        writeln(style.error('  failed ' + count.assertsFailed));
+    }
+}
+
+function printFailedTests(tests) {
     tests.forEach(function (test) {
         if (test.ok) {
             return;
@@ -274,33 +281,83 @@ tap.on('results', function (res) {
         writeln('  ' + style.accent(test.name));
 
 
-        test.asserts.forEach(function (assert) {
+        test.asserts.forEach(function (assert, i) {
             if (assert.ok) {
                 return;
             }
 
-            write('    ' + style.warning(assert.number + ') ' + assert.name));
-
+            writeln('    ' + style.warning(assert.number + ') ' + assert.name));
+            
+            // position info in tap is broken (points to internals?)
+            /*
             var pos = fmtPosition(assert);
             if (pos) {
-                writeln(' ' + style.muted(pos));
+                writeln('      ' + style.muted('@' + pos));
             }
-            else {
-                writeln();
-            }
+            */
 
             var diff = formatter.getStyledDiff(assert.actual, assert.expected, '      ');
             if (diff) {
                 writeln(diff, '      ');
             }
-            writeln();
+            if (i < test.length - 1) {
+                writeln();
+            }
         });
     });
+}
+
+tap.on('results', function (res) {
+    result = res;
+
+    closeCurrent();
+
+    // writeln(util.inspect(result));
+    // writeln(util.inspect(tests, false, 8));
+
+    var count = {
+        testsTotal: tests.length,
+        testsPassed: 0,
+        testsFailed: 0,
+
+        assertTotal: 0,
+        assertPassed: 0,
+        assertsFailed: 0
+    };
+
+    tests.forEach(function (test) {
+        if (test.ok) {
+            count.testsPassed++;
+        }
+        else {
+            count.testsFailed++;
+        }
+        count.assertTotal += test.total;
+        count.assertPassed += test.passed;
+        count.assertsFailed += test.failed;
+    });
+
+    if (count.assertTotal === 0) {
+        writeln(style.signal('zero tests?'));
+        writeln();
+    }
+    else {
+        writeln();
+        writeln();
+        printTestTotal(count);
+
+        writeln();
+        printAssertTotal(count);
+        writeln();
+
+        printFailedTests(tests);
+        writeln();
+    }
 });
 
 process.on('exit', function () {
     if (errors.length || !result.ok) {
-        writeln(style.signal('see you soon'));
+        writeln(style.signal('see you soon '));
         process.exit(1);
     }
     else {
