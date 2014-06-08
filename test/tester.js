@@ -90,7 +90,7 @@ function step(callback) {
         console.log('--> done');
         console.log('');
         fs.readFile(expectedPath, 'utf8', function (err, expected) {
-            var actual = normalise(bl.toString('utf8'));
+            var actual = normalise(bl.toString('utf8')).replace(/\n$/, '');
             var expected = (expected ? normalise(expected) : '');
             var success = (!err && (actual === expected) && (code === test.code));
             var res = {
@@ -136,7 +136,9 @@ step(function (err, result) {
             console.log(res.err);
             return;
         }
+        console.log('');
         console.log(formatter.getStyledDiff(res.actual, res.expected, '  '));
+        console.log('');
     });
 
     console.log('');
