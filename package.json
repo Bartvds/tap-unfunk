@@ -1,6 +1,6 @@
 {
   "name": "tap-unfunk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unfunky TAP reporter with object/string diff support",
   "keywords": [
     "tap",
