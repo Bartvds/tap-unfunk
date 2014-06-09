@@ -10,13 +10,20 @@ Diff support via [unfunk-diff](https://github.com/Bartvds/unfunk-diff), so diffi
 
 This is the tap equivalent of [mocha-unfunk-reporter](https://github.com/Bartvds/mocha-unfunk-reporter) except this reporter uses progress dots instead of a spec tree.
 
-Note: early release, please leave your edge cases in the [issues](https://github.com/Bartvds/tap-unfunk/issues).
+Note: very early release, please leave your edge cases in the [issues](https://github.com/Bartvds/tap-unfunk/issues).
+
+
+## Example
+
+No screenshots yet, but the tests on Travis show [some output](https://travis-ci.org/Bartvds/tap-unfunk/builds)
+
 
 ## Install
 
 ```
 npm install tap-unfunk --save-dev
 ```
+
 
 ## Usage
 
@@ -32,6 +39,7 @@ npm install tap-unfunk --save-dev
 
 Then run with `npm test`
 
+
 ### Terminal
 
 ```
@@ -42,11 +50,6 @@ tap test/index.js | node_modules/.bin/tap-unfunk
 tape test/index.js | node_modules/.bin/tap-unfunk
 ```
 
-## Example
-
-<pre style="background-color: black; font-family: monospace;">
-saasdsd
-</pre>
 
 ## Todo
 
@@ -56,6 +59,7 @@ saasdsd
 ## History
 
 * 0.1.0 - First release
+
 
 ## License
 

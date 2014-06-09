@@ -27,16 +27,16 @@ var suite = [
         code: 1
     },
     {
-        runner: 'tape',
-        script: 'tape-fail.js',
-        expected: 'tape-fail-expect.txt',
-        code: 1
-    },
-    {
         runner: 'tap',
         script: 'tap-pass.js',
         expected: 'tap-pass-expect.txt',
         code: 0
+    },
+    {
+        runner: 'tape',
+        script: 'tape-fail.js',
+        expected: 'tape-fail-expect.txt',
+        code: 1
     },
     {
         runner: 'tape',
@@ -124,13 +124,13 @@ step(function (err, result) {
 
     result.forEach(function (res) {
         if (res.sucess) {
-            console.log(style.success('passed ') + res.script);
+            console.log(style.success('passed ') + res.script + ' (' + res.test.runner + ')');
             passed++;
             return;
         }
         failed++;
 
-        console.log(style.error('failed ') + res.script);
+        console.log(style.error('failed ') + res.script + ' (' + res.test.runner + ')');
 
         if (res.err) {
             console.log(res.err);
