@@ -1,5 +1,6 @@
 'use strict';
 
+var vm = require('vm');
 var util = require('util');
 
 var through = require('through2');
@@ -12,7 +13,7 @@ var typeDetect = require('type-detect');
 var jsesc = require('jsesc');
 var style = require('ministyle').ansi();
 
-var escapeString = require('./lib/escapeString');
+var string = require('./lib/string');
 var getViewWidth = require('./lib/getViewWidth');
 
 var out = through();
@@ -24,9 +25,7 @@ process.stdin
     .pipe(process.stdout);
 
 
-var viewWidth = getViewWidth() - 2;
-var dotLimit = getViewWidth(80) - 2 - 2;
-var dotCount = 0;
+var viewWidth = getViewWidth(80) - 2 - 2;
 
 var valueStrLim = 50;
 
@@ -36,16 +35,7 @@ var oddDot = style.warning('?');
 var skipDot = style.muted('-');
 
 function addDot(dot) {
-    if (dotCount === 0) {
-        write('  ');
-    }
-    else if (dotCount >= dotLimit) {
-        writeln();
-        write('  ');
-        dotCount = 0;
-    }
     write(arguments.length > 0 ? dot : oddDot);
-    dotCount++;
 }
 
 var DiffFormatter = require('unfunk-diff').DiffFormatter;
@@ -114,7 +104,7 @@ function fmtString(value, limitish) {
             trimmed = true;
         }
     }
-    return escapeString(str) + (trimmed ? '...' : '');
+    return string.escape(str) + (trimmed ? '...' : '');
 }
 
 function fmtDiff(actual, expected, operator, indent) {
@@ -153,18 +143,23 @@ literalMap['undefined'] = undefined;
 literalMap['null'] = null;
 literalMap['NaN'] = NaN;
 
-var evalExp = [
-    /^'.*?'$/,
-    /^\[.*?\]$/,
-    /^\{.*?\}$/,
-    /^\/.*?\/[a-z]*$/
-];
-
 function evil(str) {
-    var tmp;
-    eval('tmp = ' + str + ';');
-    return tmp;
+    var box = {__r__: str};
+    try {
+        vm.runInNewContext('__r__ = ' + str + ';', box, 'evil.vm');
+    }
+    catch (e) {
+        return str;
+    }
+    return box.__r__;
 }
+
+var evalExp = [
+    [/^'.*?'$/, string.unString],
+    [/^\[ .*?\ ]$/, evil],
+    [/^\{ .*? \}$/, evil],
+    [/^\/.*?\/[a-z]*$/, evil]
+];
 
 function parseValue(str) {
     var value = parseFloat(str);
@@ -175,8 +170,8 @@ function parseValue(str) {
         return literalMap[str];
     }
     for (var i = 0; i < evalExp.length; i++) {
-        if (evalExp[i].test(str)) {
-            return evil(str);
+        if (evalExp[i][0].test(str)) {
+            return evalExp[i][1](str);
         }
     }
     return str;
@@ -225,16 +220,16 @@ tap.on('comment', function (comment) {
     closeCurrent();
 
     // writeln();
-    if (/^tests\s+[1-9]/gi.test(comment)) {
+    if (/^tests\s+[1-9]/i.test(comment)) {
         // writeln(style.accent(comment));
     }
-    else if (/^pass\s+[1-9]/gi.test(comment)) {
+    else if (/^pass\s+[1-9]/i.test(comment)) {
         // writeln(style.success(comment));
     }
-    else if (/^fail\s+[1-9]/gi.test(comment)) {
+    else if (/^fail\s+[1-9]/i.test(comment)) {
         // writeln(style.error(comment));
     }
-    else if (/^ok$/gi.test(comment)) {
+    else if (/^ok$/i.test(comment)) {
         // writeln(style.plain(comment));
     }
     else {

@@ -1,6 +1,6 @@
 [36mTAP version 13[0m
 
-  [31m![0m..[31m![0m[31m![0m[31m![0m[31m![0m..[31m![0m.[31m![0m[31m![0m.[31m![0m.[31m![0m[31m![0m[31m![0m
+[31m![0m..[31m![0m[31m![0m[31m![0m[31m![0m..[31m![0m.[31m![0m[31m![0m.[31m![0m.[31m![0m[31m![0m[31m![0m
 
 [35mfailed 11 tests[0m
 
@@ -20,11 +20,11 @@
   [36mmix fail[0m
     [33m6) assert 123[0m
         want: 123
-        have: baz
+        have: "baz"
   [36mmix fail[0m
     [33m7) assert 123[0m
         want: 123
-        have: 'bu'z\nz'
+        have: "bu'z\nz"
   [36msub pass[0m
     [33m10) plan != count[0m
         want: 2
@@ -74,11 +74,11 @@
 [36masserted 19[0m
 [33m  passed 7[0m
 [31m  failed 12[0m
-  timing <X>ms
+  timing 000ms
 
 [36mexecuted 15 tests[0m
 [33m  passed 4[0m
 [31m  failed 11[0m
-  timing <X>ms
+  timing 000ms
 
 [35mfail[0m

@@ -13,7 +13,7 @@ var DiffFormatter = require('unfunk-diff').DiffFormatter;
 var formatter = new DiffFormatter(style, getViewWidth(80));
 
 function normalise(str) {
-    return str.replace(/^  timing \d+ms$/gm, '  timing <X>ms');
+    return str.replace(/^  timing \d+ms$/gm, '  timing 000ms');
 }
 
 
@@ -90,8 +90,8 @@ function step(callback) {
         console.log('--> done');
         console.log('');
         fs.readFile(expectedPath, 'utf8', function (err, expected) {
-            var actual = normalise(bl.toString('utf8')).replace(/\n$/, '');
-            var expected = (expected ? normalise(expected) : '');
+            var actual = normalise(bl.toString('utf8')).replace(/\n+$/, '');
+            var expected = (expected ? normalise(expected) : '').replace(/\n+$/, '');
             var success = (!err && (actual === expected) && (code === test.code));
             var res = {
                 script: scriptPath,
@@ -123,6 +123,8 @@ step(function (err, result) {
     var failed = 0;
 
     result.forEach(function (res) {
+        // console.log(res.test);
+
         if (res.sucess) {
             console.log(style.success('passed ') + res.script + ' (' + res.test.runner + ')');
             passed++;
@@ -136,6 +138,7 @@ step(function (err, result) {
             console.log(res.err);
             return;
         }
+
         console.log('');
         console.log(formatter.getStyledDiff(res.actual, res.expected, '  '));
         console.log('');
